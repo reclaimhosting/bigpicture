@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+<installer>
+
+	<information>
+		<info id="version" value="0.6"/>
+		<info id="license" value="_apps_opensource"/>
+		<info id="date" value="2018-03-16"/>
+		<info id="cost" value=""/>
+	</information>
+
+	<links>
+		<link id="admin" value="wp-admin"/>
+	</links>
+
+	<requirements type='2.0'>
+		<requirement id="itron" value="5.0.0"/>
+		<requirement id="mysql" value="5-"/>
+		<requirement id="mysql-table-prefix" value="wp_"/>
+	</requirements>
+
+	<requirements>
+		<requirement id="itron-version" value="5.0.0"/>
+		<requirement id="database" value="1"/>
+		<requirement id="db-type" value="mysql"/>
+		<requirement id="db-prefix-support" value="1"/>
+		<requirement id="db-prefix-underscore" value="1"/>
+		<requirement id="mysql-version-minimum" value="5"/>
+	</requirements>
+
+	<archives>
+		<archive id="main" url="https://wordpress.org/wordpress-4.9.4.tar.gz" type="tar.gz" md5="ff84abd9ec38b93ef0ea09b05e85467b"/>
+		<archive id="data" url="http://installatron.reclaimhosting.com/bigpicture/wordpress.3_0_3.sql.tar.gz" type="tar.gz" md5="f2168f3e93165a65c1acd4df241a2664"/>
+		<archive id="mod_lla" url="http://downloads.wordpress.org/plugin/limit-login-attempts.1.7.1.zip" type="zip" md5="34f462b282730ca70b267fb172589304"/>
+		<archive id="bigpicture" url="http://installatron.reclaimhosting.com/bigpicture/wp-bigpicture-0.6.zip" type="zip" md5="b61fb4eb717fbf7fc0a202aa75ca3a17"/>
+		<archive id="importer" url="https://downloads.wordpress.org/plugin/wordpress-importer.0.6.4.zip" type="zip" md5="ac4882b9de4f6d13c9f5686d1720c2d5"/>
+		<archive id="fontawesome" url="http://installatron.reclaimhosting.com/bigpicture/font-awesome-4-menus.zip" type="zip" md5="268d00d1905b0ac41f430fd5b90f64aa"/>
+		<archive id="fluidvids" url="http://installatron.reclaimhosting.com/bigpicture/fluid-video-embeds.zip" type="zip" md5="76b489e9d04427264cf0b914201701f7"/>
+	</archives>
+	
+	<fields>
+		<field id="version">
+			<get>
+				<?php return $this->read("wp-includes/version.php", "/wp_version = (['\"])(.+?)\\1;/", 2);?>
+			</get>
+		</field>
+		<field id="login">
+			<get>
+				<?php
+				return $this->db_query("SELECT u.`user_login` FROM `{$this->db_prefix}users` u, `{$this->db_prefix}usermeta` m WHERE u.`ID`=m.`user_id` AND m.`meta_key`='{$this->db_prefix}user_level' AND m.`meta_value`=10 ORDER BY u.`ID` ASC LIMIT 1", null, "user_login");
+				//return $this->db_query("SELECT `user_login` FROM `{$this->db_prefix}users` ORDER BY `ID` ASC LIMIT 1", null, "user_login");
+				?>
+			</get>
+			<set>
+				<?php
+				$uid = $this->db_query("SELECT u.`ID` FROM `{$this->db_prefix}users` u, `{$this->db_prefix}usermeta` m WHERE u.`ID`=m.`user_id` AND m.`meta_key`='{$this->db_prefix}user_level' AND m.`meta_value`=10 ORDER BY u.`ID` ASC LIMIT 1", null, "ID");
+				//$uid = $this->db_query("SELECT `ID` FROM `{$this->db_prefix}users` ORDER BY `ID` ASC LIMIT 1", null, "ID");
+				$this->db_query("UPDATE `{$this->db_prefix}users` SET `user_login`=? WHERE `ID`=? LIMIT 1", array($this->input["field_login"], $uid));
+				?>
+			</set>
+		</field>
+		<field id="passwd">
+			<set>
+				<?php
+				$uid = $this->db_query("SELECT u.`ID` FROM `{$this->db_prefix}users` u, `{$this->db_prefix}usermeta` m WHERE u.`ID`=m.`user_id` AND m.`meta_key`='{$this->db_prefix}user_level' AND m.`meta_value`=10 ORDER BY u.`ID` ASC LIMIT 1", null, "ID");
+				$this->db_query("UPDATE `{$this->db_prefix}users` SET `user_pass`=? WHERE `ID`=? LIMIT 1", array(md5($this->input["field_passwd"]), $uid));
+				?>
+			</set>
+		</field>
+		<field id="email">
+			<get>
+				<?php
+				return $this->db_query("SELECT u.`user_email` FROM `{$this->db_prefix}users` u, `{$this->db_prefix}usermeta` m WHERE u.`ID`=m.`user_id` AND m.`meta_key`='{$this->db_prefix}user_level' AND m.`meta_value`=10 ORDER BY u.`ID` ASC LIMIT 1", null, "user_email");
+				?>
+			</get>
+			<set>
+				<?php
+				$uid = $this->db_query("SELECT u.`ID` FROM `{$this->db_prefix}users` u, `{$this->db_prefix}usermeta` m WHERE u.`ID`=m.`user_id` AND m.`meta_key`='{$this->db_prefix}user_level' AND m.`meta_value`=10 ORDER BY u.`ID` ASC LIMIT 1", null, "ID");
+				$this->db_query("UPDATE `{$this->db_prefix}users` SET `user_email`=? WHERE `ID`=? LIMIT 1", array($this->input["field_email"], $uid));
+				?>
+			</set>
+		</field>
+		<field id="sitetitle">
+			<get>
+				<?php
+				$r = $this->db_query("SELECT `option_value` FROM `{$this->db_prefix}options` WHERE `option_name`='blogname'", null, "option_value");
+				if ( $r === false ) return false;
+				return html_entity_decode($r, ENT_QUOTES);
+?>
+			</get>
+			<set>
+				<?php $this->db_query("UPDATE `{$this->db_prefix}options` SET `option_value`=? WHERE `option_name`='blogname'",array(htmlentities($this->input["field_sitetitle"], ENT_COMPAT)));?>
+			</set>
+		</field>
+		<field id="sitetagline">
+			<get>
+				<?php
+				$r = $this->db_query("SELECT `option_value` FROM `{$this->db_prefix}options` WHERE `option_name`='blogdescription'", null, "option_value");
+				if ( $r === false ) return false;
+				return html_entity_decode($r, ENT_QUOTES);
+				?>
+			</get>
+			<set>
+				<?php $this->db_query("UPDATE `{$this->db_prefix}options` SET `option_value`=? WHERE `option_name`='blogdescription'",array(htmlentities($this->input["field_sitetagline"], ENT_COMPAT)));?>
+			</set>
+		</field>
+		<field id="limitloginattempts" type="radio" value="yes">
+			<label>_info_limitloginattempts</label>
+			<options>
+				<option value="yes">_installer_wordpress_limitloginattempts_yes</option>
+				<option value="no">_installer_wordpress_limitloginattempts_no</option>
+			</options>
+			<get>
+				<?php
+				if ( method_exists($this,"isPluginEnabled") && $this->isPluginEnabled("limit-login-attempts/limit-login-attempts.php") )
+				{
+					return "yes";
+				}
+				return "no";
+				?>
+			</get>
+			<set>
+				<?php
+				if ( method_exists($this,"isPluginEnabled") && isset($this->input["field_limitloginattempts"]) )
+				{
+					if ( $this->input["field_limitloginattempts"] === "yes" )
+					{
+						$this->installPlugin("limit-login-attempts/limit-login-attempts.php", "mod_lla");
+					}
+					else
+					{
+						$this->disablePlugin("limit-login-attempts/limit-login-attempts.php");//@note handles already-disabled case gracefully
+					}
+				}
+				?>
+			</set>
+		</field>
+	</fields>
+
+	<install>
+		<?php
+		$this->extract("main");
+		$this->extract("data");
+		$this->mv('wordpress/*');
+		$this->rm('wordpress');
+		$this->mkdir(array('wp-content/uploads','wp-content/languages', "wp-content/uploads/et_temp"));
+		$this->chmod("wp-content", 0666, 0777, true);
+		$this->chmod("wp-content/index.php", 0644);
+
+		$urlinfo = parse_url($this->url);
+		$this->write(".htaccess",'
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase '.$urlinfo["path"].'/
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . '.$urlinfo["path"].'/index.php [L]
+</IfModule>
+
+# END WordPress');
+
+		$this->cp('wp-config-sample.php','wp-config.php');
+		$r = array(
+			"#'localhost'#"			=> var_export($this->db_host,true),
+			"#'username_here'#"		=> var_export($this->db_user,true),
+			"#'database_name_here'#"	=> var_export($this->db_name,true),
+			"#'password_here'#"	=> var_export($this->db_pass,true),
+			"#'wp_'#"				=> var_export($this->db_prefix,true),
+			"#define\('AUTH_KEY',.+'put your unique phrase here'\);#s" //matches whole block
+				=>
+"define('AUTH_KEY',         ".var_export(i_lib::randstr(64),true).");
+define('SECURE_AUTH_KEY',  ".var_export(i_lib::randstr(64),true).");
+define('LOGGED_IN_KEY',    ".var_export(i_lib::randstr(64),true).");
+define('NONCE_KEY',        ".var_export(i_lib::randstr(64),true).");
+define('AUTH_SALT',        ".var_export(i_lib::randstr(64),true).");
+define('SECURE_AUTH_SALT', ".var_export(i_lib::randstr(64),true).");
+define('LOGGED_IN_SALT',   ".var_export(i_lib::randstr(64),true).");
+define('NONCE_SALT',       ".var_export(i_lib::randstr(64),true).");
+
+/**
+ * Other customizations.
+ */
+"
+.( $this->env["has_php_suexec"] === false && $this->env["has_php_safe_mode"] !== false ? "" : "define('FS_METHOD','direct');".( $this->env["has_php_suexec"] !== false ? "define('FS_CHMOD_DIR',0755);define('FS_CHMOD_FILE',0644);" : "define('FS_CHMOD_DIR',0777);define('FS_CHMOD_FILE',0666);" )."\n" )
+."define('WP_TEMP_DIR',dirname(__FILE__).'/wp-content/uploads');
+
+/**
+ * Turn off automatic updates since these are managed upstream.
+ */
+define('AUTOMATIC_UPDATER_DISABLED', true);
+");
+		$this->sr("wp-config.php", $r);
+		
+		$r = array(
+				"#zzct_#" => $this->db_prefix,
+				"#http://www.testing.installatron.com/wordpress\d*#" => $this->url
+			);
+
+		$this->db_import("install.sql", null, $r);
+		$this->rm("install.sql");
+
+		$sql = "";
+		$sql .= "UPDATE `{$this->db_prefix}posts` SET post_date=NOW(), post_date_gmt=NOW(), post_modified=NOW(), post_modified_gmt=NOW();\n";
+		$sql .= "UPDATE `{$this->db_prefix}users` SET user_pass='".md5($this->input["field_passwd"])."', user_login='".$this->db_escape($this->input["field_login"])."', user_email='".$this->db_escape($this->input["field_email"])."', user_registered=NOW() WHERE ID='1';\n";
+		$sql .= "UPDATE `{$this->db_prefix}options` SET `option_value`='".$this->db_escape("$this->path/wp-content/uploads")."' WHERE `option_name`='upload_path';\n";
+		$sql .= "UPDATE `{$this->db_prefix}options` SET `option_value`='".$this->db_escape($this->input["field_email"])."' WHERE `option_name`='admin_email';\n";
+		$sql .= "UPDATE `{$this->db_prefix}usermeta` SET `meta_value`='0' WHERE `meta_key`='default_password_nag' AND `user_id`='1';\n";
+
+		$sql .= "UPDATE `{$this->db_prefix}options` SET `option_value`='1' WHERE `option_name`='blog_public';\n";
+
+	// use bigpicture theme
+		$this->extract("bigpicture");
+		$this->mv("wp-bigpicture-master","wp-content/themes/wp-bigpicture");
+		$sql .= "UPDATE `{$this->db_prefix}options` SET `option_value`='wp-bigpicture' WHERE `option_name`='stylesheet' OR `option_name`='template';\n";
+
+		// use permalinks instead of query string
+		if ( !isset($this->env["has_apache"]) || $this->env["has_apache"] !== false || $this->env["has_nginx"] !== false )
+		{
+			$sql .= "UPDATE `{$this->db_prefix}options` SET `option_value`='".( $this->ds === "/" ? "/%category%/%postname%/" : "" )."' WHERE `option_name`='permalink_structure';\n";
+		}
+
+		$sql .= "INSERT INTO `{$this->db_prefix}options` (`option_name`, `option_value`) VALUES
+('ftp_credentials', '".$this->db_escape(serialize(array( "hostname" => "localhost", "username" => $this->input["field_ftpuser"], "connection_type" => "ftp" )))."');\n";
+
+		$this->write("install2.sql",$sql);
+		$this->db_import("install2.sql");
+		$this->rm("install2.sql");
+
+		$this->chmod(array(".htaccess","wp-config.php"),0666);
+
+                // to fix the upgrade screen after the first install:
+		$r = $this->fetch('wp-admin/upgrade.php?step=1', null, null, false);
+
+$this->write("wp-includes/.htaccess","<Files *.php>
+deny from all
+</Files>
+<Files wp-tinymce.php>
+allow from all
+</Files>
+<Files ms-files.php>
+allow from all
+</Files>");
+
+		$this->rm("readme.html");
+		$this->installPlugin("font-awesome-4-menus/n9m-font-awesome-4.php", "fontawesome");
+		$this->installPlugin("fluid-video-embeds/fluid-video-embeds.php", "fluidvids");
+		$this->installPlugin("wordpress-importer/wordpress-importer.php", "importer");
+
+
+$this->write("wpinstall.sh", "#!/bin/bash
+cd {$this->path}
+/usr/local/bin/wp --allow-root --path='{$this->path}' post delete 1 &>> $logfile
+/usr/local/bin/wp --allow-root --path='{$this->path}' import data.xml --authors=skip &>> $logfile
+");
+
+exec("/usr/bin/nohup /bin/sh {$this->path}/wpinstall.sh &> /dev/null &");
+
+
+		?>
+	</install>
+
+</installer>

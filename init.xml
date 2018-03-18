@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<installer>
+	<information>
+		<info id="id" value="bigpicturecallingcard"/>
+		<info id="build" value="1"/>
+		<info id="catalog" value="http://data.installatron.com/catalog/3rdparty/b40bc5c7e571cca5682753f6abb30fa4/bigpicturecallingcard.xml"/>
+		<info id="channel" value="3rdparty"/>
+		<info id="status" value="enabled"/>
+		<info id="name" value="_installer_bigpicturecallingcard_title"/>
+		<info id="type" value="_installer_bigpicturecallingcard_type"/>
+		<info id="category" value="_installer_bigpicturecallingcard_category"/>
+		<info id="created" value="2018-03-16"/>
+		<info id="description" value="_installer_bigpicturecallingcard_description"/>
+		<info id="authordescription" value="_installer_bigpicturecallingcard_authordescription"/>
+		<info id="icon-border-top" value="0"/>
+	</information>
+
+	<links>
+		<link id="site" value="https://github.com/cogdog/wp-bigpicture"/>
+		<link id="demo" value="http://lab.cogdogblog.com/bigpicture/"/>
+	</links>
+
+	<versions>
+		<branch id="current">
+			<version id="0.6" upgrade="none" install="auto"/>
+		</branch>
+
+	</versions>
+</installer>
