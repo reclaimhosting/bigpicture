@@ -1,2 +1,2 @@
-# bigpicture
-Installatron application installer for Big Picture WordPress Theme
+# Big Picture Installatron Application Installer
+This package is a custom [Installatron](https://installatron.com) application that creates a WordPress install with the Big Picture WordPress Theme built by Alan Levine and based on the [HTML5 UP! template](https://html5up.net/big-picture) by the same name.
